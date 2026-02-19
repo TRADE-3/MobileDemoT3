@@ -25,9 +25,30 @@ import Confirmation from '../screens/ServiceProvider/Confirmation';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
+const linking = {
+    prefixes: ['http://localhost:19006', 'https://mobile-demo-t3.vercel.app'],
+    config: {
+        screens: {
+            Home: '',
+            SellerDashboard: 'seller',
+            NewRequest: 'seller/new',
+            SellerSuccess: 'seller/success',
+            YieldMarketplace: 'lender',
+            VaultDetail: 'lender/vault',
+            Portfolio: 'lender/portfolio',
+            EscrowList: 'buyer',
+            FundEscrow: 'buyer/fund',
+            ShipmentTracking: 'buyer/track',
+            InspectionList: 'inspector',
+            Verification: 'inspector/verify',
+            Confirmation: 'inspector/confirm',
+        },
+    },
+};
+
 export default function RootNavigator() {
     return (
-        <NavigationContainer>
+        <NavigationContainer linking={linking}>
             <Stack.Navigator
                 screenOptions={{
                     headerStyle: {
