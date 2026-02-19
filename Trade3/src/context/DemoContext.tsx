@@ -23,6 +23,7 @@ interface DemoContextType {
 const DemoContext = createContext<DemoContextType | undefined>(undefined);
 
 export const DemoProvider = ({ children }: { children: ReactNode }) => {
+    const [stage, setStage] = useState<DemoStage>('CONTRACT_UBC');
     const [isAutoRun, setIsAutoRun] = useState(false);
 
     const STAGE_ORDER: DemoStage[] = [
