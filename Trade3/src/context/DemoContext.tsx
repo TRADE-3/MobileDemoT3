@@ -16,12 +16,14 @@ interface DemoContextType {
     advanceStage: () => void;
     resetDemo: () => void;
     getStageDescription: () => string;
+    isAutoRun: boolean;
+    toggleAutoRun: () => void;
 }
 
 const DemoContext = createContext<DemoContextType | undefined>(undefined);
 
 export const DemoProvider = ({ children }: { children: ReactNode }) => {
-    const [stage, setStage] = useState<DemoStage>('CONTRACT_UBC');
+    const [isAutoRun, setIsAutoRun] = useState(false);
 
     const STAGE_ORDER: DemoStage[] = [
         'CONTRACT_UBC',
@@ -34,6 +36,24 @@ export const DemoProvider = ({ children }: { children: ReactNode }) => {
         'SETTLEMENT_NET'
     ];
 
+    React.useEffect(() => {
+        let interval: NodeJS.Timeout;
+        if (isAutoRun) {
+            interval = setInterval(() => {
+                setStage((prevStage) => {
+                    const currentIndex = STAGE_ORDER.indexOf(prevStage);
+                    if (currentIndex < STAGE_ORDER.length - 1) {
+                        return STAGE_ORDER[currentIndex + 1];
+                    } else {
+                        setIsAutoRun(false); // Stop at end
+                        return prevStage;
+                    }
+                });
+            }, 3500); // 3.5 seconds per stage
+        }
+        return () => clearInterval(interval);
+    }, [isAutoRun]);
+
     const advanceStage = () => {
         const currentIndex = STAGE_ORDER.indexOf(stage);
         if (currentIndex < STAGE_ORDER.length - 1) {
@@ -43,6 +63,14 @@ export const DemoProvider = ({ children }: { children: ReactNode }) => {
 
     const resetDemo = () => {
         setStage('CONTRACT_UBC');
+        setIsAutoRun(false);
+    };
+
+    const toggleAutoRun = () => {
+        if (stage === 'SETTLEMENT_NET') {
+            setStage('CONTRACT_UBC'); // Restart if at end
+        }
+        setIsAutoRun(prev => !prev);
     };
 
     const getStageDescription = () => {
@@ -60,7 +88,7 @@ export const DemoProvider = ({ children }: { children: ReactNode }) => {
     };
 
     return (
-        <DemoContext.Provider value={{ stage, setStage, advanceStage, resetDemo, getStageDescription }}>
+        <DemoContext.Provider value={{ stage, setStage, advanceStage, resetDemo, getStageDescription, isAutoRun, toggleAutoRun }}>
             {children}
         </DemoContext.Provider>
     );

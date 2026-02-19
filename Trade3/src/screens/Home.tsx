@@ -4,14 +4,16 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types';
 import { COLORS, FONTS, SIZES, SHADOWS } from '../constants/theme';
-import { Briefcase, TrendingUp, ShoppingCart, ShieldCheck, AlertCircle } from 'lucide-react-native';
+import { Factory, Truck, Briefcase, Frame, RotateCcw, Play, TrendingUp, ShoppingCart, ShieldCheck, AlertCircle } from 'lucide-react-native';
+import TransactionFlowIndicator from '../components/TransactionFlowIndicator';
+import TradeExplainer from '../components/TradeExplainer';
 import { useDemo, DemoStage } from '../context/DemoContext';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
 
 export default function Home() {
     const navigation = useNavigation<NavigationProp>();
-    const { stage, advanceStage, resetDemo, getStageDescription } = useDemo();
+    const { stage, resetDemo, getStageDescription, isAutoRun, toggleAutoRun } = useDemo();
 
     const getActivePersonaIndex = (currentStage: DemoStage) => {
         switch (currentStage) {
@@ -82,173 +84,208 @@ export default function Home() {
                     </TouchableOpacity>
                     <TouchableOpacity style={[styles.controlBtn, { backgroundColor: '#e53935' }]} onPress={resetDemo}>
                         <Text style={styles.controlBtnText}>Reset</Text>
-                    </TouchableOpacity>
-                </View>
-            </View>
+                        <SafeAreaView style={styles.container}>
+                            <ScrollView contentContainerStyle={styles.scrollContent}>
 
-            <Text style={styles.sectionTitle}>Select Your Persona</Text>
-
-            <View style={styles.grid}>
-                {personas.map((persona, index) => {
-                    const isActionRequired = index === activeIndex;
-                    return (
-                        <TouchableOpacity
-                            key={index}
-                            style={[
-                                styles.card,
-                                isActionRequired && styles.activeCard
-                            ]}
-                            onPress={() => navigation.navigate(persona.route)}
-                        >
-                            <View style={[styles.iconContainer, { backgroundColor: isActionRequired ? COLORS.accent : COLORS.primary }]}>
-                                {persona.icon}
-                            </View>
-                            <View style={{ flex: 1 }}>
-                                <Text style={styles.cardTitle}>{persona.title}</Text>
-                                <Text style={styles.cardDesc}>{persona.description}</Text>
-                            </View>
-
-                            {isActionRequired && (
-                                <View style={styles.actionBadge}>
-                                    <AlertCircle size={14} color={COLORS.secondary} style={{ marginRight: 4 }} />
-                                    <Text style={styles.actionText}>Action</Text>
+                                {/* Header */}
+                                <View style={styles.header}>
+                                    <View style={styles.headerRow}>
+                                        <Image
+                                            source={require('../../assets/logo.png')}
+                                            style={styles.logo}
+                                            resizeMode="contain"
+                                        />
+                                        <View style={styles.headerControls}>
+                                            <TouchableOpacity
+                                                style={[styles.controlButton, isAutoRun ? { backgroundColor: COLORS.accent } : { borderColor: COLORS.accent, borderWidth: 1 }]}
+                                                onPress={toggleAutoRun}
+                                            >
+                                                <Play size={16} color={isAutoRun ? COLORS.secondary : COLORS.accent} style={{ marginRight: 6 }} />
+                                                <Text style={[styles.controlText, isAutoRun ? { color: COLORS.secondary } : { color: COLORS.accent }]}>
+                                                    {isAutoRun ? 'Auto-Running...' : 'Auto-Pilot'}
+                                                </Text>
+                                            </TouchableOpacity>
+                                            <TouchableOpacity style={styles.resetButton} onPress={resetDemo}>
+                                                <RotateCcw size={18} color={COLORS.text} />
+                                            </TouchableOpacity>
+                                        </View>
+                                    </View>
+                                    <Text style={styles.subtitle}>Antigravity Trade Finance Demo</Text>
                                 </View>
-                            )}
-                        </TouchableOpacity>
-                    );
-                })}
-            </View>
-        </ScrollView>
-    );
+
+                                {/* Trade Explainer */}
+                                <TradeExplainer />
+
+                                {/* Transaction Progress */}
+                                <View style={styles.progressContainer}>
+                                    <Text style={styles.sectionTitle}>Live Transaction Status</Text>
+                                    <TransactionFlowIndicator />
+                                    <View style={styles.stageDescription}>
+                                        <Text style={styles.stageText}>Current Stage: {getStageDescription()}</Text>
+                                    </View>
+                                </View>
+
+                                {/* Persona Selection */}
+                                <Text style={styles.sectionTitle}>Select Persona View</Text>
+                                <View style={styles.grid}>
+                                    {PERSONAS.map((persona, index) => (
+                                        <PersonaCard
+                                            key={index}
+                                            name={persona.name}
+                                            role={persona.role}
+                                            Icon={persona.icon}
+                                            isActive={activePersonaIndex === index}
+                                            isActionRequired={activePersonaIndex === index && !['SETTLEMENT_NET'].includes(stage)}
+                                            onPress={() => navigation.navigate(persona.screen as any)}
+                                        />
+                                    ))}
+                                </View>
+
+                            </ScrollView>
+                        </SafeAreaView>
+                        );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: COLORS.background,
-        padding: SIZES.padding,
+                        const styles = StyleSheet.create({
+                            container: {
+                            flex: 1,
+                        backgroundColor: COLORS.background,
     },
-    header: {
-        alignItems: 'center',
-        marginVertical: 40,
+                        scrollContent: {
+                            padding: SIZES.padding,
+                        paddingBottom: 40,
     },
-    logoImage: {
-        width: 200,
-        height: 60,
-        marginBottom: 8,
+                        header: {
+                            marginBottom: 20,
     },
-    subtitle: {
-        fontFamily: FONTS.body,
-        fontSize: 16,
-        color: COLORS.text,
+                        headerRow: {
+                            flexDirection: 'row',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginBottom: 8,
     },
-    sectionTitle: {
-        fontFamily: FONTS.heading,
-        fontSize: 20,
-        color: COLORS.primary,
-        marginBottom: 20,
-        fontWeight: 'bold',
-        textAlign: 'center',
+                        headerControls: {
+                            flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 8,
     },
-    grid: {
-        gap: 16,
+                        logo: {
+                            width: 140,
+                        height: 40,
     },
-    card: {
-        backgroundColor: COLORS.secondary,
-        borderRadius: SIZES.radius,
-        padding: 24,
-        ...SHADOWS.card,
-        flexDirection: 'row',
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: 'transparent',
+                        subtitle: {
+                            fontFamily: FONTS.body,
+                        fontSize: 14,
+                        color: COLORS.text,
     },
-    activeCard: {
-        borderColor: COLORS.accent,
-        backgroundColor: '#fff5f2', // Very light coral tint
+                        controlButton: {
+                            flexDirection: 'row',
+                        alignItems: 'center',
+                        paddingVertical: 6,
+                        paddingHorizontal: 12,
+                        borderRadius: 20,
     },
-    iconContainer: {
-        width: 48,
-        height: 48,
-        borderRadius: 24,
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginRight: 16,
+                        controlText: {
+                            fontFamily: FONTS.bodyBold,
+                        fontSize: 12,
     },
-    cardTitle: {
-        fontFamily: FONTS.heading,
-        fontSize: 18,
-        color: COLORS.primary,
-        fontWeight: 'bold',
-        marginBottom: 4,
+                        resetButton: {
+                            padding: 8,
     },
-    cardDesc: {
-        fontFamily: FONTS.body,
-        fontSize: 14,
-        color: COLORS.text,
-        flexShrink: 1,
+                        progressContainer: {
+                            marginBottom: 24,
     },
-    actionBadge: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: COLORS.accent,
-        paddingHorizontal: 10,
-        paddingVertical: 6,
-        borderRadius: 20,
-        marginLeft: 8,
+                        sectionTitle: {
+                            fontFamily: FONTS.heading,
+                        fontSize: 18,
+                        color: COLORS.primary,
+                        marginBottom: 16,
+                        fontWeight: 'bold',
     },
-    actionText: {
-        color: COLORS.secondary,
-        fontFamily: FONTS.bodyBold,
-        fontSize: 12,
+                        stageDescription: {
+                            marginTop: 8,
+                        backgroundColor: COLORS.secondary,
+                        padding: 10,
+                        borderRadius: 8,
+                        alignItems: 'center',
+                        borderWidth: 1,
+                        borderColor: COLORS.border,
     },
-    scenarioCard: {
-        // Let's use a very light navy tint.
-        backgroundColor: 'rgba(26, 31, 58, 0.05)',
-        padding: 16,
-        borderRadius: 12,
-        marginBottom: 24,
-        borderWidth: 1,
-        borderColor: COLORS.border,
+                        stageText: {
+                            fontFamily: FONTS.bodyBold,
+                        color: COLORS.accent,
+                        fontSize: 14,
     },
-    scenarioTitle: {
-        fontFamily: FONTS.heading,
-        fontSize: 16,
-        color: COLORS.primary,
-        fontWeight: 'bold',
-        marginBottom: 12,
+                        grid: {
+                            flexDirection: 'row',
+                        flexWrap: 'wrap',
+                        justifyContent: 'space-between',
     },
-    stageContainer: {
-        marginBottom: 16,
+                        // ... Persona Card Styles (unchanged)
+                        card: {
+                            width: '48%',
+                        backgroundColor: COLORS.secondary,
+                        borderRadius: SIZES.radius,
+                        padding: 16,
+                        marginBottom: 16,
+                        alignItems: 'center',
+                        ...SHADOWS.card,
+                        borderWidth: 2,
+                        borderColor: 'transparent',
     },
-    stageLabel: {
-        fontFamily: FONTS.body,
-        fontSize: 12,
-        color: COLORS.text,
-        textTransform: 'uppercase',
+                        activeCard: {
+                            borderColor: COLORS.accent,
+                        backgroundColor: '#fff8f6', // Light coral tint
     },
-    stageValue: {
-        fontFamily: FONTS.heading,
-        fontSize: 16,
-        color: COLORS.primary,
-        fontWeight: 'bold',
-        marginTop: 4,
+                        iconContainer: {
+                            width: 50,
+                        height: 50,
+                        borderRadius: 25,
+                        backgroundColor: COLORS.background,
+                        justifyContent: 'center',
+                        borderRadius: 12,
+                        marginBottom: 24,
+                        borderWidth: 1,
+                        borderColor: COLORS.border,
     },
-    controls: {
-        flexDirection: 'row',
-        gap: 12,
+                        scenarioTitle: {
+                            fontFamily: FONTS.heading,
+                        fontSize: 16,
+                        color: COLORS.primary,
+                        fontWeight: 'bold',
+                        marginBottom: 12,
     },
-    controlBtn: {
-        backgroundColor: COLORS.primary,
-        paddingVertical: 10,
-        paddingHorizontal: 16,
-        borderRadius: 8,
-        flex: 1,
-        alignItems: 'center',
+                        stageContainer: {
+                            marginBottom: 16,
     },
-    controlBtnText: {
-        color: COLORS.secondary,
-        fontFamily: FONTS.heading,
-        fontWeight: 'bold',
+                        stageLabel: {
+                            fontFamily: FONTS.body,
+                        fontSize: 12,
+                        color: COLORS.text,
+                        textTransform: 'uppercase',
+    },
+                        stageValue: {
+                            fontFamily: FONTS.heading,
+                        fontSize: 16,
+                        color: COLORS.primary,
+                        fontWeight: 'bold',
+                        marginTop: 4,
+    },
+                        controls: {
+                            flexDirection: 'row',
+                        gap: 12,
+    },
+                        controlBtn: {
+                            backgroundColor: COLORS.primary,
+                        paddingVertical: 10,
+                        paddingHorizontal: 16,
+                        borderRadius: 8,
+                        flex: 1,
+                        alignItems: 'center',
+    },
+                        controlBtnText: {
+                            color: COLORS.secondary,
+                        fontFamily: FONTS.heading,
+                        fontWeight: 'bold',
     },
 });
