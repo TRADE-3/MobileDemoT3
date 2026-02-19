@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types';
@@ -10,6 +11,27 @@ import TradeExplainer from '../components/TradeExplainer';
 import { useDemo, DemoStage } from '../context/DemoContext';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
+
+// Persona Card Component
+const PersonaCard = ({ name, role, Icon, isActive, isActionRequired, onPress }: any) => (
+    <TouchableOpacity
+        style={[styles.card, isActive && styles.activeCard]}
+        onPress={onPress}
+    >
+        <View style={[styles.iconContainer, isActive && { backgroundColor: COLORS.accent }]}>
+            {/* Clone icon with color adjustment if active */}
+            {React.cloneElement(Icon, { color: isActive ? COLORS.secondary : COLORS.primary })}
+        </View>
+        <Text style={styles.role}>{role}</Text>
+        <Text style={styles.name}>{name}</Text>
+
+        {isActionRequired && (
+            <View style={styles.badge}>
+                <Text style={styles.badgeText}>Action Required</Text>
+            </View>
+        )}
+    </TouchableOpacity>
+);
 
 export default function Home() {
     const navigation = useNavigation<NavigationProp>();
@@ -29,263 +51,222 @@ export default function Home() {
         }
     };
 
-    const activeIndex = getActivePersonaIndex(stage);
+    const activePersonaIndex = getActivePersonaIndex(stage);
 
-    const personas = [
+    const PERSONAS = [
         {
-            title: 'Manufacturer (Afeco)',
-            description: 'Borrower | Aluminum Buyer',
-            route: 'EscrowList' as const,
-            icon: <ShoppingCart color={COLORS.secondary} size={24} />,
+            name: 'Manufacturer (Afeco)',
+            role: 'Buyer',
+            screen: 'EscrowList',
+            icon: <ShoppingCart size={24} color={COLORS.primary} />,
         },
         {
-            title: 'Supplier (Ivory)',
-            description: 'Seller | Raw Material (UBC)',
-            route: 'SellerDashboard' as const,
-            icon: <Briefcase color={COLORS.secondary} size={24} />,
+            name: 'Supplier (Ivory)',
+            role: 'Seller',
+            screen: 'SellerDashboard',
+            icon: <Briefcase size={24} color={COLORS.primary} />,
         },
         {
-            title: 'Custodian (Logistics)',
-            description: 'Inspector | SGS / Control Union',
-            route: 'InspectionList' as const,
-            icon: <ShieldCheck color={COLORS.secondary} size={24} />,
+            name: 'Custodian (SGS)',
+            role: 'Inspector',
+            screen: 'InspectionList',
+            icon: <ShieldCheck size={24} color={COLORS.primary} />,
         },
         {
-            title: 'Investor (GFI)',
-            description: 'Lender | Circular Economy Fund',
-            route: 'YieldMarketplace' as const,
-            icon: <TrendingUp color={COLORS.secondary} size={24} />,
+            name: 'Lender (Xtraa)',
+            role: 'Financier',
+            screen: 'YieldMarketplace',
+            icon: <TrendingUp size={24} color={COLORS.primary} />,
         },
     ];
 
     return (
-        <ScrollView style={styles.container}>
-            <View style={styles.header}>
-                <Image
-                    source={require('../../assets/logo.png')}
-                    style={styles.logoImage}
-                    resizeMode="contain"
-                />
-                <Text style={styles.subtitle}>Blockchain Trade Finance Demo</Text>
-            </View>
+        <SafeAreaView style={styles.container}>
+            <ScrollView contentContainerStyle={styles.scrollContent}>
 
-            {/* Scenario Controller */}
-            <View style={styles.scenarioCard}>
-                <Text style={styles.scenarioTitle}>End-to-End Demo Controller</Text>
-
-                <View style={styles.stageContainer}>
-                    <Text style={styles.stageLabel}>Current Stage:</Text>
-                    <Text style={styles.stageValue}>{getStageDescription()}</Text>
+                {/* Header */}
+                <View style={styles.header}>
+                    <View style={styles.headerRow}>
+                        <Image
+                            source={require('../../assets/logo.png')}
+                            style={styles.logo}
+                            resizeMode="contain"
+                        />
+                        <View style={styles.headerControls}>
+                            <TouchableOpacity
+                                style={[styles.controlButton, isAutoRun ? { backgroundColor: COLORS.accent } : { borderColor: COLORS.accent, borderWidth: 1 }]}
+                                onPress={toggleAutoRun}
+                            >
+                                <Play size={16} color={isAutoRun ? COLORS.secondary : COLORS.accent} style={{ marginRight: 6 }} />
+                                <Text style={[styles.controlText, isAutoRun ? { color: COLORS.secondary } : { color: COLORS.accent }]}>
+                                    {isAutoRun ? 'Auto-Running...' : 'Auto-Pilot'}
+                                </Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={styles.resetButton} onPress={resetDemo}>
+                                <RotateCcw size={18} color={COLORS.text} />
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                    <Text style={styles.subtitle}>Antigravity Trade Finance Demo</Text>
                 </View>
 
-                <View style={styles.controls}>
-                    <TouchableOpacity style={styles.controlBtn} onPress={advanceStage}>
-                        <Text style={styles.controlBtnText}>Next Stage ➔</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={[styles.controlBtn, { backgroundColor: '#e53935' }]} onPress={resetDemo}>
-                        <Text style={styles.controlBtnText}>Reset</Text>
-                        <SafeAreaView style={styles.container}>
-                            <ScrollView contentContainerStyle={styles.scrollContent}>
+                {/* Trade Explainer */}
+                <TradeExplainer />
 
-                                {/* Header */}
-                                <View style={styles.header}>
-                                    <View style={styles.headerRow}>
-                                        <Image
-                                            source={require('../../assets/logo.png')}
-                                            style={styles.logo}
-                                            resizeMode="contain"
-                                        />
-                                        <View style={styles.headerControls}>
-                                            <TouchableOpacity
-                                                style={[styles.controlButton, isAutoRun ? { backgroundColor: COLORS.accent } : { borderColor: COLORS.accent, borderWidth: 1 }]}
-                                                onPress={toggleAutoRun}
-                                            >
-                                                <Play size={16} color={isAutoRun ? COLORS.secondary : COLORS.accent} style={{ marginRight: 6 }} />
-                                                <Text style={[styles.controlText, isAutoRun ? { color: COLORS.secondary } : { color: COLORS.accent }]}>
-                                                    {isAutoRun ? 'Auto-Running...' : 'Auto-Pilot'}
-                                                </Text>
-                                            </TouchableOpacity>
-                                            <TouchableOpacity style={styles.resetButton} onPress={resetDemo}>
-                                                <RotateCcw size={18} color={COLORS.text} />
-                                            </TouchableOpacity>
-                                        </View>
-                                    </View>
-                                    <Text style={styles.subtitle}>Antigravity Trade Finance Demo</Text>
-                                </View>
+                {/* Transaction Progress */}
+                <View style={styles.progressContainer}>
+                    <Text style={styles.sectionTitle}>Live Transaction Status</Text>
+                    <TransactionFlowIndicator />
+                    <View style={styles.stageDescription}>
+                        <Text style={styles.stageText}>Current Stage: {getStageDescription()}</Text>
+                    </View>
+                </View>
 
-                                {/* Trade Explainer */}
-                                <TradeExplainer />
+                {/* Persona Selection */}
+                <Text style={styles.sectionTitle}>Select Persona View</Text>
+                <View style={styles.grid}>
+                    {PERSONAS.map((persona, index) => (
+                        <PersonaCard
+                            key={index}
+                            name={persona.name}
+                            role={persona.role}
+                            Icon={persona.icon}
+                            isActive={activePersonaIndex === index}
+                            isActionRequired={activePersonaIndex === index && !['SETTLEMENT_NET'].includes(stage)}
+                            onPress={() => navigation.navigate(persona.screen as any)}
+                        />
+                    ))}
+                </View>
 
-                                {/* Transaction Progress */}
-                                <View style={styles.progressContainer}>
-                                    <Text style={styles.sectionTitle}>Live Transaction Status</Text>
-                                    <TransactionFlowIndicator />
-                                    <View style={styles.stageDescription}>
-                                        <Text style={styles.stageText}>Current Stage: {getStageDescription()}</Text>
-                                    </View>
-                                </View>
-
-                                {/* Persona Selection */}
-                                <Text style={styles.sectionTitle}>Select Persona View</Text>
-                                <View style={styles.grid}>
-                                    {PERSONAS.map((persona, index) => (
-                                        <PersonaCard
-                                            key={index}
-                                            name={persona.name}
-                                            role={persona.role}
-                                            Icon={persona.icon}
-                                            isActive={activePersonaIndex === index}
-                                            isActionRequired={activePersonaIndex === index && !['SETTLEMENT_NET'].includes(stage)}
-                                            onPress={() => navigation.navigate(persona.screen as any)}
-                                        />
-                                    ))}
-                                </View>
-
-                            </ScrollView>
-                        </SafeAreaView>
-                        );
+            </ScrollView>
+        </SafeAreaView>
+    );
 }
 
-                        const styles = StyleSheet.create({
-                            container: {
-                            flex: 1,
-                        backgroundColor: COLORS.background,
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: COLORS.background,
     },
-                        scrollContent: {
-                            padding: SIZES.padding,
-                        paddingBottom: 40,
+    scrollContent: {
+        padding: SIZES.padding,
+        paddingBottom: 40,
     },
-                        header: {
-                            marginBottom: 20,
+    header: {
+        marginBottom: 20,
     },
-                        headerRow: {
-                            flexDirection: 'row',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        marginBottom: 8,
+    headerRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 8,
     },
-                        headerControls: {
-                            flexDirection: 'row',
-                        alignItems: 'center',
-                        gap: 8,
+    headerControls: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
     },
-                        logo: {
-                            width: 140,
-                        height: 40,
+    logo: {
+        width: 140,
+        height: 40,
     },
-                        subtitle: {
-                            fontFamily: FONTS.body,
-                        fontSize: 14,
-                        color: COLORS.text,
+    subtitle: {
+        fontFamily: FONTS.body,
+        fontSize: 14,
+        color: COLORS.text,
     },
-                        controlButton: {
-                            flexDirection: 'row',
-                        alignItems: 'center',
-                        paddingVertical: 6,
-                        paddingHorizontal: 12,
-                        borderRadius: 20,
+    controlButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 6,
+        paddingHorizontal: 12,
+        borderRadius: 20,
     },
-                        controlText: {
-                            fontFamily: FONTS.bodyBold,
-                        fontSize: 12,
+    controlText: {
+        fontFamily: FONTS.bodyBold,
+        fontSize: 12,
     },
-                        resetButton: {
-                            padding: 8,
+    resetButton: {
+        padding: 8,
     },
-                        progressContainer: {
-                            marginBottom: 24,
+    progressContainer: {
+        marginBottom: 24,
     },
-                        sectionTitle: {
-                            fontFamily: FONTS.heading,
-                        fontSize: 18,
-                        color: COLORS.primary,
-                        marginBottom: 16,
-                        fontWeight: 'bold',
+    sectionTitle: {
+        fontFamily: FONTS.heading,
+        fontSize: 18,
+        color: COLORS.primary,
+        marginBottom: 16,
+        fontWeight: 'bold',
     },
-                        stageDescription: {
-                            marginTop: 8,
-                        backgroundColor: COLORS.secondary,
-                        padding: 10,
-                        borderRadius: 8,
-                        alignItems: 'center',
-                        borderWidth: 1,
-                        borderColor: COLORS.border,
+    stageDescription: {
+        marginTop: 8,
+        backgroundColor: COLORS.secondary,
+        padding: 10,
+        borderRadius: 8,
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: COLORS.border,
     },
-                        stageText: {
-                            fontFamily: FONTS.bodyBold,
-                        color: COLORS.accent,
-                        fontSize: 14,
+    stageText: {
+        fontFamily: FONTS.bodyBold,
+        color: COLORS.accent,
+        fontSize: 14,
     },
-                        grid: {
-                            flexDirection: 'row',
-                        flexWrap: 'wrap',
-                        justifyContent: 'space-between',
+    grid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'space-between',
     },
-                        // ... Persona Card Styles (unchanged)
-                        card: {
-                            width: '48%',
-                        backgroundColor: COLORS.secondary,
-                        borderRadius: SIZES.radius,
-                        padding: 16,
-                        marginBottom: 16,
-                        alignItems: 'center',
-                        ...SHADOWS.card,
-                        borderWidth: 2,
-                        borderColor: 'transparent',
+    card: {
+        width: '48%',
+        backgroundColor: COLORS.secondary,
+        borderRadius: SIZES.radius,
+        padding: 16,
+        marginBottom: 16,
+        alignItems: 'center',
+        ...SHADOWS.card,
+        borderWidth: 2,
+        borderColor: 'transparent',
     },
-                        activeCard: {
-                            borderColor: COLORS.accent,
-                        backgroundColor: '#fff8f6', // Light coral tint
+    activeCard: {
+        borderColor: COLORS.accent,
+        backgroundColor: '#fff8f6', // Light coral tint
     },
-                        iconContainer: {
-                            width: 50,
-                        height: 50,
-                        borderRadius: 25,
-                        backgroundColor: COLORS.background,
-                        justifyContent: 'center',
-                        borderRadius: 12,
-                        marginBottom: 24,
-                        borderWidth: 1,
-                        borderColor: COLORS.border,
+    iconContainer: {
+        width: 50,
+        height: 50,
+        borderRadius: 25,
+        backgroundColor: COLORS.background,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 12,
     },
-                        scenarioTitle: {
-                            fontFamily: FONTS.heading,
-                        fontSize: 16,
-                        color: COLORS.primary,
-                        fontWeight: 'bold',
-                        marginBottom: 12,
+    role: {
+        fontFamily: FONTS.heading,
+        fontSize: 16,
+        color: COLORS.primary,
+        marginBottom: 4,
+        fontWeight: 'bold',
     },
-                        stageContainer: {
-                            marginBottom: 16,
+    name: {
+        fontFamily: FONTS.body,
+        fontSize: 12,
+        color: COLORS.text,
+        textAlign: 'center',
     },
-                        stageLabel: {
-                            fontFamily: FONTS.body,
-                        fontSize: 12,
-                        color: COLORS.text,
-                        textTransform: 'uppercase',
+    badge: {
+        position: 'absolute',
+        top: 8,
+        right: 8,
+        backgroundColor: '#e53935',
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        borderRadius: 4,
     },
-                        stageValue: {
-                            fontFamily: FONTS.heading,
-                        fontSize: 16,
-                        color: COLORS.primary,
-                        fontWeight: 'bold',
-                        marginTop: 4,
-    },
-                        controls: {
-                            flexDirection: 'row',
-                        gap: 12,
-    },
-                        controlBtn: {
-                            backgroundColor: COLORS.primary,
-                        paddingVertical: 10,
-                        paddingHorizontal: 16,
-                        borderRadius: 8,
-                        flex: 1,
-                        alignItems: 'center',
-    },
-                        controlBtnText: {
-                            color: COLORS.secondary,
-                        fontFamily: FONTS.heading,
-                        fontWeight: 'bold',
+    badgeText: {
+        color: 'white',
+        fontSize: 10,
+        fontWeight: 'bold',
     },
 });
